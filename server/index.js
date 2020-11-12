@@ -6,9 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const app = express();
-// to different domain or port
-app.use(cors);
-// change post request data to json
+app.use(cors());
 app.use(bodyParser.json());
 
 // Postgres Client Setup
@@ -21,7 +19,6 @@ const pgClient = new Pool({
   port: keys.pgPort,
 });
 
-// create 1 table to store data
 pgClient.on('connect', () => {
   pgClient
     .query('CREATE TABLE IF NOT EXISTS values (number INT)')
@@ -38,12 +35,13 @@ const redisClient = redis.createClient({
 const redisPublisher = redisClient.duplicate();
 
 // Express route handlers
+
 app.get('/', (req, res) => {
   res.send('Hi');
 });
 
 app.get('/values/all', async (req, res) => {
-  const values = await pgClient.query('SELECT * FROM values');
+  const values = await pgClient.query('SELECT * from values');
 
   res.send(values.rows);
 });
@@ -58,7 +56,7 @@ app.post('/values', async (req, res) => {
   const index = req.body.index;
 
   if (parseInt(index) > 40) {
-    return res.status(422).send('Index too high!');
+    return res.status(422).send('Index too high');
   }
 
   redisClient.hset('values', index, 'Nothing yet!');
@@ -68,4 +66,6 @@ app.post('/values', async (req, res) => {
   res.send({ working: true });
 });
 
-app.listen(5000, (err) => console.log('Listening'));
+app.listen(5000, (err) => {
+  console.log('Listening');
+});
